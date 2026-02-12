@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Valentine Access Portal 💘</title>
+  <style>
+    :root{
+      --bg1:#0f1020; --bg2:#1b1230; --card:#14162a; --text:#f6f0ff;
+      --muted:#c9b6ff; --accent:#ff4fd8; --accent2:#7c5cff; --good:#35d07f; --warn:#ffcc66;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 20% 20%, var(--bg2), var(--bg1));
+      color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:22px;
+      overflow-x:hidden;
+    }
+    .wrap{width:min(780px, 100%);}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+      border-radius: 18px; padding: 20px;
+    }
+    .top{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom: 14px;
+    }
+    .badge{
+      display:inline-flex; gap:8px; align-items:center;
+      padding: 8px 12px; border-radius: 999px;
+      background: rgba(255,79,216,0.12);
+      border: 1px solid rgba(255,79,216,0.25);
+      color: var(--muted);
+      font-weight:600;
+    }
+    .title{
+      font-size: 22px; font-weight: 800; letter-spacing:0.2px;
+    }
+    .sub{color:var(--muted); margin-top:6px; line-height:1.4}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+    button{
+      border:0; cursor:pointer; font-weight:800;
+      padding: 11px 14px; border-radius: 12px;
+      background: rgba(124,92,255,0.22);
+      color: var(--text);
+      border: 1px solid rgba(124,92,255,0.35);
+      transition: transform .08s ease, filter .12s ease;
+      user-select:none;
+    }
+    button:hover{filter:brightness(1.08)}
+    button:active{transform: translateY(1px) scale(0.99)}
+    .primary{background: rgba(255,79,216,0.18); border-color: rgba(255,79,216,0.35)}
+    .good{background: rgba(53,208,127,0.18); border-color: rgba(53,208,127,0.35)}
+    .ghost{background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14)}
+    .danger{background: rgba(255,204,102,0.14); border-color: rgba(255,204,102,0.28); color: var(--text)}
+    .panel{
+      margin-top: 16px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .log{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono";
+      font-size: 13px;
+      color: #e9ddff;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      margin:0;
+    }
+    .inputRow{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+    input{
+      flex:1;
+      min-width: 220px;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+      outline: none;
+      font-weight: 650;
+    }
+    input::placeholder{color: rgba(201,182,255,0.7)}
+    .meter{
+      width: 240px; max-width: 100%;
+      padding: 10px 12px; border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .bar{
+      height: 10px; border-radius: 999px; background: rgba(255,255,255,0.10);
+      overflow:hidden; margin-top:8px;
+    }
+    .fill{
+      height:100%; width: 10%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      border-radius: 999px;
+      transition: width .4s ease;
+    }
+    .footer{margin-top:12px; color: rgba(201,182,255,0.85); font-size: 12.5px}
+    .pill{
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+      margin-right:8px; margin-top:6px;
+    }
+    .grid{
+      display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:12px;
+    }
+    .coupon{
+      border-radius: 14px; padding: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px dashed rgba(255,255,255,0.22);
+      position:relative;
+      overflow:hidden;
+    }
+    .coupon.locked::after{
+      content:"🔒 Locked";
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(2px);
+      font-weight:900; letter-spacing:0.3px;
+    }
+    .coupon h4{margin:0 0 6px 0}
+    .coupon p{margin:0; color: rgba(201,182,255,0.85)}
+    canvas{position:fixed; inset:0; pointer-events:none; z-index:50;}
+    .small{font-size: 13px; color: rgba(201,182,255,0.85)}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="title">Valentine Access Portal 💘</div>
+          <div class="sub" id="subtitle">Restricted content. For Husband Eyes Only.</div>
+        </div>
+        <div class="meter">
+          <div><strong>Love Meter:</strong> <span id="meterLabel">10%</span></div>
+          <div class="bar"><div class="fill" id="meterFill"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <pre class="log" id="log"></pre>
+        <div id="controls"></div>
+      </div>
+
+      <div class="footer">
+        <span class="pill" id="levelPill">Level 1/4</span>
+        <span class="pill" id="statusPill">Status: Initializing…</span>
+        <div class="small">Tip: Make this extra personal by editing the answers + inside jokes in the code (search for “CUSTOMIZE”).</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // CUSTOMIZE (edit these!)
+    // =========================
+    const WIFE_NAME = "Your Wife 😌";   // e.g., "Sal"
+    const HUSBAND_NAME = "My Husband";  // e.g., "Aman"
+    // Set your secret answers (lowercase comparisons)
+    const ANSWER_1 = "pizza";   // Level 2: his favorite snack/food (example)
+    const ANSWER_2 = "cuddle";  // Level 3: magic word
+    // Optional: add a date or inside joke
+    const INSIDE_JOKE = "the blanket thief incident";
+
+    // =========================
+    // App state
+    // =========================
+    const log = document.getElementById("log");
+    const controls = document.getElementById("controls");
+    const levelPill = document.getElementById("levelPill");
+    const statusPill = document.getElementById("statusPill");
+    const subtitle = document.getElementById("subtitle");
+    const meterFill = document.getElementById("meterFill");
+    const meterLabel = document.getElementById("meterLabel");
+
+    let level = 1;
+    let love = 10;
+
+    function setLove(val){
+      love = Math.max(0, Math.min(100, val));
+      meterFill.style.width = love + "%";
+      meterLabel.textContent = love + "%";
+    }
+
+    function type(lines){
+      log.textContent = lines.join("\n");
+    }
+
+    function setLevelPill(){
+      levelPill.textContent = `Level ${level}/4`;
+    }
+
+    function setStatus(text){
+      statusPill.textContent = `Status: ${text}`;
+    }
+
+    function btn(text, cls, onClick){
+      const b = document.createElement("button");
+      b.textContent = text;
+      if(cls) b.className = cls;
+      b.onclick = onClick;
+      return b;
+    }
+
+    function input(placeholder){
+      const i = document.createElement("input");
+      i.placeholder = placeholder;
+      return i;
+    }
+
+    function clearControls(){
+      controls.innerHTML = "";
+    }
+
+    function addRow(...els){
+      const row = document.createElement("div");
+      row.className = "row";
+      els.forEach(e => row.appendChild(e));
+      controls.appendChild(row);
+    }
+
+    function addPanel(el){
+      controls.appendChild(el);
+    }
+
+    // =========================
+    // Levels
+    // =========================
+    function level1(){
+      level = 1; setLevelPill(); setStatus("Threat assessment");
+      subtitle.textContent = "Restricted content. For Husband Eyes Only.";
+      type([
+        `🔐 SECURITY SCAN INITIATED…`,
+        ``,
+        `Name detected: ${HUSBAND_NAME}`,
+        `Relationship status: Married (excellent decision) ✅`,
+        `Risk level: High (you are dangerously handsome) ⚠️`,
+        ``,
+        `Proceed only if you accept the following terms:`,
+        `1) You will smile at least once.`,
+        `2) You will redeem kisses immediately when prompted.`,
+        `3) You agree that ${WIFE_NAME} is cute. (Non-negotiable.)`,
+        ``,
+        `Do you accept?`
+      ]);
+      clearControls();
+      addRow(
+        btn("I accept 😌", "primary", () => { setLove(25); level2_intro(); }),
+        btn("I refuse 😳", "ghost", () => {
+          setLove(15);
+          type([
+            `❌ Request denied.`,
+            `Reason: Too late. You already married ${WIFE_NAME}.`,
+            ``,
+            `Redirecting you to acceptance…`
+          ]);
+          setTimeout(() => level2_intro(), 900);
+        })
+      );
+    }
+
+    function level2_intro(){
+      level = 2; setLevelPill(); setStatus("Compatibility check");
+      subtitle.textContent = "Level 2: Husband Verification";
+      type([
+        `✅ Access step 1 cleared.`,
+        ``,
+        `LEVEL 2: Husband Verification`,
+        `Prove you are the real ${HUSBAND_NAME}.`,
+        ``,
+        `Question: What snack/food would instantly make you happy?`,
+        `(Hint: ${WIFE_NAME} knows this. Don’t embarrass yourself. 😌)`,
+        ``,
+        `Type your answer:`
+      ]);
+      clearControls();
+
+      const i = input("Type here… (example: pizza)");
+      const submit = btn("Submit", "good", () => {
+        const val = (i.value || "").trim().toLowerCase();
+        if(!val){
+          setStatus("Awaiting answer");
+          return;
+        }
+        if(val === ANSWER_1.toLowerCase()){
+          setLove(45);
+          level2_pass();
+        }else{
+          setLove(love + 2);
+          type([
+            `❌ Incorrect…`,
+            `But I admire the confidence.`,
+            ``,
+            `Clue: Try the one that makes you act like a happy golden retriever. 🐶`
+          ]);
+        }
+      });
+
+      const wrap = document.createElement("div");
+      wrap.className = "inputRow";
+      wrap.appendChild(i);
+      wrap.appendChild(submit);
+      addPanel(wrap);
+
+      addRow(
+        btn("Need hint 👀", "danger", () => {
+          setStatus("Hint delivered");
+          type([
+            `💡 Hint: It’s something that could start a minor household negotiation.`,
+            `Example: “Share?”`,
+            `You: “No.”`,
+            `${WIFE_NAME}: “Okay but I love you.”`
+          ]);
+        }),
+        btn("I am innocent & hungry", "ghost", () => setLove(love + 1))
+      );
+    }
+
+    function level2_pass(){
+      setStatus("Verified");
+      type([
+        `✅ Correct.`,
+        `Identity confirmed: ${HUSBAND_NAME} (certified snack-motivated).`,
+        ``,
+        `Before you proceed… choose your vibe:`
+      ]);
+      clearControls();
+      addRow(
+        btn("Cute 😌", "primary", () => { setLove(55); level3("cute"); }),
+        btn("Funny 😈", "primary", () => { setLove(58); level3("funny"); }),
+        btn("Romantic 🥺", "primary", () => { setLove(60); level3("romantic"); })
+      );
+    }
+
+    function level3(vibe){
+      level = 3; setLevelPill(); setStatus("Intent analysis");
+      subtitle.textContent = "Level 3: Intent Analysis";
+
+      const scripts = {
+        cute: [
+          `Aww. Cute mode selected.`,
+          `Diagnosis: You want cuddles and you pretend you don’t.`,
+          ``,
+          `Now type the magic word to unlock Level 4:`,
+          `Magic word = the thing you owe me right now.`
+        ],
+        funny: [
+          `Funny mode selected.`,
+          `Logging: Husband is acting confident… suspicious.`,
+          ``,
+          `Now type the magic word to unlock Level 4:`,
+          `Magic word = the activity where you are trapped in my arms.`
+        ],
+        romantic: [
+          `Romantic mode selected.`,
+          `Heart status: melting.`,
+          ``,
+          `Now type the magic word to unlock Level 4:`,
+          `Magic word = our default solution to 87% of problems.`
+        ]
+      };
+
+      type(scripts[vibe]);
+      clearControls();
+
+      const i = input("Type the magic word… (hint: starts with C)");
+      const submit = btn("Unlock", "good", () => {
+        const val = (i.value || "").trim().toLowerCase();
+        if(val === ANSWER_2.toLowerCase()){
+          setLove(78);
+          level4();
+        }else{
+          setLove(love + 2);
+          setStatus("Incorrect but adorable");
+          type([
+            `❌ Not quite.`,
+            `Try again, handsome.`,
+            ``,
+            `Hint: it rhymes with “huddle”… and involves ${INSIDE_JOKE}.`
+          ]);
+        }
+      });
+
+      const wrap = document.createElement("div");
+      wrap.className = "inputRow";
+      wrap.appendChild(i);
+      wrap.appendChild(submit);
+      addPanel(wrap);
+
+      addRow(
+        btn("Emergency hint 🚨", "danger", () => {
+          type([
+            `💡 Hint: It’s what happens when you sit near me for 2 seconds.`,
+            `Also: it’s free, but I charge in kisses.`
+          ]);
+        }),
+        btn("I demand a free pass 😤", "ghost", () => {
+          type([`Denied. Cute tantrum logged. 😌`]);
+          setLove(love + 1);
+        })
+      );
+    }
+
+    function level4(){
+      level = 4; setLevelPill(); setStatus("Final unlock");
+      subtitle.textContent = "Level 4: Valentine Rewards Vault";
+
+      type([
+        `✅ ACCESS GRANTED.`,
+        ``,
+        `Welcome to the Valentine Rewards Vault.`,
+        `Dear ${HUSBAND_NAME},`,
+        ``,
+        `You make my life softer, safer, and funnier.`,
+        `I still choose you — on the easy days and the chaotic ones.`,
+        ``,
+        `Now… pick your reward(s). (Redeemable immediately 😌)`
+      ]);
+
+      clearControls();
+
+      const grid = document.createElement("div");
+      grid.className = "grid";
+
+      const coupons = [
+        { title:"💋 10 Kisses", text:"Redeem now. No refunds.", unlock:0 },
+        { title:"🤍 Long Hug", text:"Minimum duration: 20 seconds.", unlock:0 },
+        { title:"🍿 Movie Night", text:"Your pick… but I get the snacks.", unlock:1 },
+        { title:"🫶 Massage Token", text:"Limited stock: 1 (use wisely).", unlock:1 },
+        { title:"😈 Private Surprise", text:"Access location: bedroom. 😌", unlock:2 },
+        { title:"📜 Love Letter", text:"A real one. With real feelings.", unlock:2 },
+      ];
+
+      let unlocked = 2; // how many coupons are initially visible as unlocked
+
+      coupons.forEach((c, idx) => {
+        const box = document.createElement("div");
+        box.className = "coupon " + ((idx < unlocked) ? "" : "locked");
+        box.innerHTML = `<h4>${c.title}</h4><p>${c.text}</p>`;
+        box.onclick = () => {
+          if(idx >= unlocked){
+            setStatus("Locked");
+            setLove(love + 1);
+            type([
+              `🔒 That one is locked.`,
+              `To unlock more, click “Increase Love” 😌`
+            ]);
+            return;
+          }
+          setStatus("Redeemed");
+          setLove(Math.min(100, love + 4));
+          popConfetti();
+          type([
+            `✅ Redeemed: ${c.title}`,
+            ``,
+            `Instruction: Look at ${WIFE_NAME} and say something cute.`,
+            `You have 5 seconds.`
+          ]);
+        };
+        grid.appendChild(box);
+      });
+
+      addPanel(grid);
+
+      addRow(
+        btn("Increase Love 💘", "primary", () => {
+          unlocked = Math.min(coupons.length, unlocked + 1);
+          setLove(love + 6);
+          setStatus("Unlocking…");
+          [...grid.children].forEach((el, idx) => {
+            if(idx < unlocked) el.classList.remove("locked");
+          });
+          type([
+            `💘 Love increased.`,
+            `New reward unlocked.`,
+            ``,
+            `P.S. You’re my favorite human.`
+          ]);
+        }),
+        btn("Final Message ✨", "good", () => {
+          setLove(100);
+          setStatus("Love overload");
+          popConfetti(180);
+          type([
+            `🎉 FINAL MESSAGE UNLOCKED`,
+            ``,
+            `Hey ${HUSBAND_NAME},`,
+            `I love you. I like you. I choose you.`,
+            `And yes, I still want you to hold my hand in public 😌`,
+            ``,
+            `Now come here.`
+          ]);
+        }),
+        btn("Restart 🔁", "ghost", () => { setLove(10); level1(); })
+      );
+    }
+
+    // =========================
+    // Confetti (tiny + simple)
+    // =========================
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+    let confetti = [];
+    function resize(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    function popConfetti(count=90){
+      for(let i=0;i<count;i++){
+        confetti.push({
+          x: Math.random()*canvas.width,
+          y: -10,
+          r: 2 + Math.random()*4,
+          vx: -1 + Math.random()*2,
+          vy: 2 + Math.random()*4,
+          a: 0.6 + Math.random()*0.4,
+          rot: Math.random()*Math.PI
+        });
+      }
+    }
+
+    function tick(){
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      confetti = confetti.filter(p => p.y < canvas.height + 20);
+      confetti.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.vy *= 0.99;
+        p.rot += 0.08;
+        ctx.save();
+        ctx.globalAlpha = p.a;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        // no fixed colors requested; using default stroke/fill values is fine,
+        // but we still need visible confetti, so we use a gradient based on position.
+        const g = ctx.createLinearGradient(-5,0,5,0);
+        g.addColorStop(0, "rgba(124,92,255,0.9)");
+        g.addColorStop(1, "rgba(255,79,216,0.9)");
+        ctx.fillStyle = g;
+        ctx.fillRect(-p.r, -p.r, p.r*2.4, p.r*2.4);
+        ctx.restore();
+      });
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    // Start
+    setLove(10);
+    level1();
+  </script>
+</body>
+</html>
